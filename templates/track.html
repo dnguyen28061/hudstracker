@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Track Calories
+{% endblock %}
+
+{% block main %}
+<script>
+    var lunch_nutrition = {{lunch|tojson}};
+    var dinner_nutrition = {{dinner|tojson}};
+</script>
+<script src="/static/show.js"></script>
+ <label for="food_form">Meal</label>
+ <select class="form-control" id="meal" onchange=show_menu()>
+    <option selected disabled>Choose Meal</option> 
+    <option value="lunch">Lunch</option>
+    <option value="dinner">Dinner</option>
+ </select><br>
+
+<div class="form-group hidden" id="lunch_form">
+    <label for="food_form">Lunch</label>
+    <form action="/lunch" METHOD="post">
+    <select class="form-control" id="lunch" name="food" onchange=show_nutrition()> 
+    {% for items in lunch %}
+      <option value={{loop.index}}>{{ items.title }}</option>
+    {% endfor %}
+    </select>
+    <br><button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+<div name="dinner_form" id = "dinner_form" value="dinner_form" class="form-group hidden">
+        <label for="food_form">Dinner</label>
+        <form action="/dinner" METHOD="post">
+        <select class="form-control" name ="food" id="dinner" onchange=show_nutrition()> 
+        {% for items in dinner %}
+          <option value={{loop.index}}>{{ items.title }}</option>
+        {% endfor %}
+        </select>
+        <br><button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    
+</div>
+<div id="nutrition" class="form-group"></div>
+<br>
+Today's Intake 
+<table class="table">
+  <thead>
+    <tr>
+      <th>Total Calories</th>
+      <th>Total Fat</th>
+      <th>Total Carbohydrates</th>
+      <th>Total Protein</th>
+    </tr>
+  </thead>
+  <tbody>
+      <td>{{ '%.02f' | format(sum['SUM(calories)'] | float)}}</td>
+      <td>{{ '%.02f' | format(sum['SUM(fat)'] | float)}}</td>
+      <td>{{ '%.02f' | format(sum['SUM(carbs)'] | float)}}</td>
+      <td>{{ '%.02f' | format(sum['SUM(protein)'] | float)}}</td>
+  </tbody>
+</table>
+
+
+  <div class="form-group">
+
+{% endblock %}

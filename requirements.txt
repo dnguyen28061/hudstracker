@@ -1,0 +1,8 @@
+gunicorn
+bs4
+cs50
+flask
+flask_session
+werkzeug
+datetime
+requests
