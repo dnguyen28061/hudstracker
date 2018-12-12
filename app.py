@@ -35,7 +35,7 @@ Session(app)
 
 # Configure CS50 Library to use SQLite database
 db = SQL("postgres://aojpdemfwainuo:5332cfddb0f477d4488deae0d70e645892e32fb0adaed516b2c6a8b4785af5ab@ec2-54-235-133-42.compute-1.amazonaws.com:5432/d9dplnhguqhutk")
-")
+
 
 lunch = []
 dinner = []
