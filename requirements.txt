@@ -6,3 +6,4 @@ flask_session
 werkzeug
 datetime
 requests
+psycopg2
