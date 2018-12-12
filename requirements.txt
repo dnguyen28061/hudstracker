@@ -7,3 +7,4 @@ werkzeug
 datetime
 requests
 psycopg2
+functools
