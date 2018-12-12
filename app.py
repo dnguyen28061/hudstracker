@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 import datetime
-from selenium import webdriver
+import requests
 from helpers import apology, login_required
 
 # Configure application
@@ -34,7 +34,8 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///user_data.db")
+db = SQL("postgres://aojpdemfwainuo:5332cfddb0f477d4488deae0d70e645892e32fb0adaed516b2c6a8b4785af5ab@ec2-54-235-133-42.compute-1.amazonaws.com:5432/d9dplnhguqhutk
+")
 
 lunch = []
 dinner = []
@@ -98,8 +99,8 @@ def track():
     global lunch
     global dinner
     # Links to HUDS menu of foods
-    lunch = load_foods("http://www.foodpro.huds.harvard.edu/foodpro/menu_items.asp?type=05&meal=1", "lunch")
-    dinner = load_foods("http://www.foodpro.huds.harvard.edu/foodpro/menu_items.asp?type=05&meal=2", "dinner")
+    lunch = load_foods("http://www.foodpro.huds.harvard.edu/foodpro/menu_items.asp?type=30&meal=1", "lunch")
+    dinner = load_foods("http://www.foodpro.huds.harvard.edu/foodpro/menu_items.asp?type=30&meal=2", "dinner")
 
     # Select sum today's calories, carbs, fat, etc. to display at the bottom of page
     date = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -109,13 +110,13 @@ def track():
 # Insert food into the table
 
 
-def insert(meal, counter):
+def insert(meal, counter, serving_size):
     # Retrieve the nutritional info by indexing into a global variable of meals
     food = meal[counter]['title']
-    calories = float(meal[counter]['calories'])
-    fat = float(meal[counter]['fat'])
-    carbs = float(meal[counter]['carbs'])
-    protein = float(meal[counter]['protein'])
+    calories = float(meal[counter]['calories'])*serving_size
+    fat = float(meal[counter]['fat'])*serving_size
+    carbs = float(meal[counter]['carbs'])*serving_size
+    protein = float(meal[counter]['protein'])*serving_size
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     db.execute("INSERT INTO food (food,calories,fat,carbs,protein,user_id,date) VALUES(:food,:calories,:fat,:carbs,:protein,:user_id,:date)", food=food, calories=calories, fat=fat, carbs=carbs, protein=protein, user_id=session['user_id'], date=date)
 
@@ -127,7 +128,8 @@ def insert(meal, counter):
 def insert_lunch():
     # returns the food item number that the user submits
     counter = int(request.form.get("food")) - 1
-    insert(lunch, counter)
+    serving_size = float(request.form.get("serving_size"))
+    insert(lunch, counter, serving_size)
     return redirect('/track')
 
 
@@ -139,7 +141,8 @@ def insert_lunch():
 def table():
     # returns the food item number
     counter = int(request.form.get("food")) - 1
-    insert(dinner, counter)
+    serving_size = float(request.form.get("serving_size"))
+    insert(dinner, counter, serving_size)
     return redirect('/track')
 
 
@@ -168,13 +171,14 @@ def mfp():
         if request.form.get("query"):
             query = request.form.get("query")
             # Selenium webdriver to submit user food request to myfitnesspal, change executable path to path of webdriver
-            driver = webdriver.Chrome(executable_path='/Users/danielnguyen/Downloads/chromedriver')
-            driver.get("https://www.myfitnesspal.com/food/calorie-chart-nutrition-facts")
-            inputElement = driver.find_element_by_id("search")
-            inputElement.send_keys(query)
-            inputElement.submit()
-            html = driver.page_source
-            soup = BeautifulSoup(html, features="lxml")
+            FormData={
+            'search':query,
+            'commit':'search',
+            'authenticity_token':'QrlBkUY0PIGkfC/QXemwtqMK8+QNMcC4/j2iPR2xE5s='
+            }
+            s = requests.Session()
+            html = s.post("https://www.myfitnesspal.com/food/search",data=FormData)
+            soup = BeautifulSoup(html.text, features="lxml")
             food = []
             # Make an array an add all of the titles of the food names
             titles = []
@@ -189,18 +193,18 @@ def mfp():
                 item_info['serving_size'] = (item.find("label", string="Serving Size: ")).next_sibling.replace(",", "").strip()
                 item_info['calories'] = (item.find("label", string="Calories: ")).next_sibling.replace(",", "").strip()
                 item_info['fat'] = (item.find("label", string="Fat: ")).next_sibling.replace("g,", "").strip()
-                item_info['protein'] = (item.find("label", string="Carbs: ")).next_sibling.replace("g,", "").strip()
-                item_info['carbs'] = (item.find("label", string="Protein: ")).next_sibling.replace("g", "").strip()
+                item_info['protein'] = (item.find("label", string="Protein: ")).next_sibling.replace("g", "").strip()
+                item_info['carbs'] = (item.find("label", string="Carbs: ")).next_sibling.replace("g,", "").strip()
                 item_info['item_number'] = iteration
                 item_info['title'] = titles[iteration]
                 # Add the nutritional info dictionary to the list of foods
                 food.append(item_info)
-            driver.close()
             session['food'] = food
             return render_template("mfp.html", food=food)
         elif request.form.get("mfp_index"):
             counter = int(request.form.get("mfp_index"))
-            insert(session['food'],counter)
+            serving_size = float(request.form.get("serving_size"))
+            insert(session['food'],counter,serving_size)
     return render_template("mfp.html")
 
 @app.route("/login", methods=["GET", "POST"])
