@@ -17,6 +17,7 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # Ensure responses aren't cached
+app.config['TESTING'] = False
 
 
 @app.after_request
