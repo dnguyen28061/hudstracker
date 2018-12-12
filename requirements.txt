@@ -44,3 +44,4 @@ Werkzeug==0.14.1
 wrapt==1.10.11
 gunicorn
 psycopg2
+flask_session
