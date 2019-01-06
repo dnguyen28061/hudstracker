@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    History 
+{% endblock %}
+
+{% block main %}
+<form action="/history" method="post" onchange="this.submit()">
+    <select name="history_date" class="form-control">
+        <option disabled selected>Choose a date</option>
+        {% for items in dates %}
+        <option value={{items['date']}}>{{items['date']}}</option>
+        {% endfor %}
+    </select>
+</form>
+{% if history is defined %}
+    <table class="table">
+    <thead>
+        <tr>
+        <th>Food</th>
+        <th>Calories</th>
+        <th>Fat</th>
+        <th>Carbs</th>
+        <th>Protein</th>
+        </tr>
+    </thead>
+    {% for items in history %}
+    <tbody>
+        <td>{{ items['food']}}</td>
+        <td>{{ '%.02f' | format(items['calories'] | float)}}</td>
+        <td>{{ '%.02f' | format(items['fat'] | float)}}</td>
+        <td>{{ '%.02f' | format(items['carbs'] | float)}}</td>
+        <td>{{ '%.02f' | format(items['protein'] | float)}}</td>
+    </tbody>
+    {% endfor %}
+    <tfoot>
+            <tr>
+              <th id="total" colspan="1">Total :</th>
+              <td>{{ '%.02f' | format(sum['SUM(calories)'] | float)}}</td>
+              <td>{{ '%.02f' | format(sum['SUM(fat)'] | float)}}</td>
+              <td>{{ '%.02f' | format(sum['SUM(carbs)'] | float)}}</td>
+              <td>{{ '%.02f' | format(sum['SUM(protein)'] | float)}}</td>
+            </tr>
+           </tfoot>
+    </table>
+{% endif %}
+
+{% endblock %}

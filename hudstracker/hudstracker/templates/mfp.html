@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+    <label>Insert food here</label>
+    <form autocomplete="off" action="/mfp" method="post">
+        <input required name="query"> 
+    <button class="btn btn-primary" type="submit">Submit</button>
+    </form><br>
+
+    {% if food %}
+    <form action = "/mfp" method="post">
+        {% for item in food %}
+        <input type ="radio" name="mfp_index" value = {{ item['item_number'] }}> {{ item['title'] }}</input><br> 
+        <small><i>Calories: {{ item['calories'] }}, Carbs: {{ item['carbs'] }}, Fat: {{ item['fat'] }}, Protein: {{ item['protein'] }}, Serving Size: {{ item['serving_size'] }}</i></small><br><br>
+        {% endfor %} 
+        <button class="btn btn-primary" type="submit">Add Food!</button>
+    </form>
+    {% endif %}
+{% endblock %}
